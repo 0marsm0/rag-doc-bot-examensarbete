@@ -18,7 +18,14 @@ def get_pdf_text(filepath: str) -> List[dict]:
 
 
 def generate_embeddings(text_chunks: List[str]) -> List[List[float]]:
-    pass
+    texts = [chunk['content'] for chunk in text_chunks]
+    response = genai.embed_content(model="models/text-embedding-004", content=texts)
+
+    return response["embedding"]
+
 
 def ingestion(file_path: str):
-    pass
+    vector_db = lancedb.connect(uri=DB_PATH)
+
+if __name__ == "__main__":
+    ingestion("../data/raw/EGSYS.pgf")
