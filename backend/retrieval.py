@@ -23,7 +23,12 @@ def search_db(query: str, limit: int = 3):
         return
 
     db = lancedb.connect(DB_PATH)
-    tbl = db.open_table(TABLE_NAME)
+
+    try:
+        tbl = db.open_table(TABLE_NAME)
+    except FileNotFoundError:
+        print(f"ERROR: Table {TABLE_NAME} not found")
+        return []
 
     # Convert the query into a vector
     response = genai.embed_content(
@@ -41,7 +46,9 @@ def search_db(query: str, limit: int = 3):
     
     for i, hit in enumerate(results):
         print(f"Resultat #{i+1} (Page #{hit['page_number']})")
-        print(f"Text: {hit['text'][:300]}...\n")
+        print(f"Text: {hit['text'][:200]}...\n")
+
+    return results
 
 if __name__ == "__main__":
     # Test query
