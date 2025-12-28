@@ -1554,7 +1554,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pypdf", specifier = ">=6.4.2" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
-    { name = "streamlit", specifier = ">=1.52.2" },
+    { name = "streamlit", specifier = ">=1.43.0" },
 ]
 
 [[package]]
