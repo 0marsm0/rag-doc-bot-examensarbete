@@ -42,7 +42,11 @@ def generate_answer(query: str):
     model = genai.GenerativeModel(MODEL_NAME)
     response = model.generate_content(prompt)
     
-    return response.text
+    
+    return {
+        "answer": response.text,
+        "sources": retrieved_chunks
+    }
 
 if __name__ == "__main__":
     #test_question = "Vad handlar detta dokument om?"
