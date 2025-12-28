@@ -9,16 +9,32 @@ sys.path.insert(0, str(project_root))
 sys.path.insert(0, str(backend_path))
 
 import backend.rag as rag_module
+import backend.retrieval as retrieval_module
 
-st.title("RAG Document Bot (MVP)")
+st.title("RAG Document Bot")
 
-user_query = st.text_input("Ask your question here:")
+user_query = st.text_input("Your Question:")
 
-if st.button("Send"):
+# Slider for amount of chunks
+num_chunks = st.slider("Number of sources to use", 1, 5, 3)
+
+if st.button("Search Answer"):
     if user_query:
-        with st.spinner("Generating answer..."):
+        with st.spinner("Searching database..."):
+            # 1. Retrieve context
+            retrieved_chunks = retrieval_module.search_db(user_query, limit=num_chunks)
+            
+            # 2. Generate answer
             answer = rag_module.generate_answer(user_query)
-            st.write("### Answer:")
-            st.write(answer)
-    else:
-        st.warning("Please enter a question first.")
+            
+            # 3. Display Answer
+            st.subheader("Answer")
+            st.success(answer)
+            
+            # 4. Display Sources
+            st.subheader("Sources")
+            if retrieved_chunks:
+                for i, chunk in enumerate(retrieved_chunks, 1):
+                    st.text_area(f"Source {i} (Page {chunk['page_number']})", chunk['text'], height=100)
+            else:
+                st.info("No relevant sources found.")
