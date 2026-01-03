@@ -13,9 +13,9 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 DB_PATH = os.path.join(project_root, "data", "lancedb")
 TABLE_NAME = "pdf_knowledge_base"
 
-def search_db(query: str, limit: int = 3):
-    print(f"\nQuestion: '{query}'")
-    print(f"Searching in database: {DB_PATH}")
+def search_db(query: str, limit: int = 3, filename: str = None):
+    #print(f"\nQuestion: '{query}'")
+    #print(f"Searching in database: {DB_PATH}")
 
     # Connection to the existing database
     if not os.path.exists(DB_PATH):
@@ -38,16 +38,15 @@ def search_db(query: str, limit: int = 3):
     )
     query_vector = response['embedding']
 
-    # Search for the nearest matches in LanceDB
-    results = tbl.search(query_vector).limit(limit).to_list()
+    search_job = tbl.search(query_vector).limit(limit)
 
-    # Getting the results
-    print(f"Found {len(results)} chunks:\n")
+    if filename and filename != "All Documents":
+        search_job = search_job.where(f"filename = '{filename}'")
+        print(f"Searching in: {filename}")
     
-    for i, hit in enumerate(results):
-        print(f"Resultat #{i+1} (Page #{hit['page_number']})")
-        print(f"Text: {hit['text'][:200]}...\n")
+    results = search_job.to_list()
 
+    print(f"Found {len(results)} chunks.")
     return results
 
 if __name__ == "__main__":
