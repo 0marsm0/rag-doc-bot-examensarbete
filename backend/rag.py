@@ -17,8 +17,10 @@ def generate_answer(query: str, history: list = []):
     retrieved_chunks = search_db(query, limit=3)
 
     if not retrieved_chunks:
+        def empty_generator():
+            yield "I couldn't find information in the document."
         return {
-            "answer": "I could't find information in the document.",
+            "stream": empty_generator(),
             "sources": []
         }
     
@@ -55,11 +57,16 @@ def generate_answer(query: str, history: list = []):
     """
 
     model = genai.GenerativeModel(MODEL_NAME)
-    response = model.generate_content(prompt)
+    response = model.generate_content(prompt, stream=True)
+
+    def text_generator():
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
     
     
     return {
-        "answer": response.text,
+        "stream": text_generator(),
         "sources": retrieved_chunks
     }
 
