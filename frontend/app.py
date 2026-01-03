@@ -265,8 +265,11 @@ if user_input or uploaded_files:
         with st.chat_message("assistant", avatar="🤖"):
             with st.spinner("Searching document..."):
                 try:
-                    result = rag_module.generate_answer(user_input)
-            
+                    result = rag_module.generate_answer(
+                    user_input, 
+                    history=st.session_state.chat_history[-6:-1]
+                    )
+        
                     answer = result["answer"]
                     retrieved_chunks = result["sources"]
                     
