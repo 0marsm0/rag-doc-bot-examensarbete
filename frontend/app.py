@@ -13,6 +13,12 @@ sys.path.insert(0, str(backend_path))
 import backend.rag as rag_module
 import backend.ingestion as ingestion_module
 
+def get_available_pdfs():
+    raw_dir = project_root / "data" / "raw"
+    if not raw_dir.exists():
+        return []
+    return [f.name for f in raw_dir.iterdir() if f.suffix.lower() == '.pdf']
+
 # Page configuration
 st.set_page_config(
     page_title="RAG Document Bot",
@@ -114,6 +120,16 @@ if 'num_chunks' not in st.session_state:
 # Sidebar
 with st.sidebar:
     st.markdown("## 📚 RAG Document Bot")
+
+    available_files = get_available_pdfs()
+    options = ["All Documents"] + available_files
+    
+    selected_file = st.selectbox(
+        "Select Document",
+        options,
+        index=0,
+        help="Choose a specific file to chat with, or search all."
+    )
         
     st.markdown("## ⚙️ Settings")
     st.session_state.num_chunks = st.slider(
@@ -240,6 +256,7 @@ if user_input or uploaded_files:
                     if success:
                         st.session_state.chat_history = []
                         st.success(f"File '{uploaded_file.name}' processed successfully!")
+                        st.rerun()
                     else:
                         st.error(f"Failed to process '{uploaded_file.name}'")
                 else:
@@ -268,7 +285,8 @@ if user_input or uploaded_files:
                 try:
                     result = rag_module.generate_answer(
                         user_input, 
-                        history=st.session_state.chat_history[-6:-1]
+                        history=st.session_state.chat_history[-6:-1],
+                        filename=selected_file
                     )
                     
                     stream_generator = result["stream"]
@@ -304,7 +322,7 @@ if user_input or uploaded_files:
                     # Add assistant response to history
                     st.session_state.chat_history.append({
                         "role": "assistant",
-                        "content": full_response, # <-- берем результат st.write_stream
+                        "content": full_response,
                         "avatar": "🤖",
                         "timestamp": timestamp,
                         "sources": sources_data
@@ -313,5 +331,11 @@ if user_input or uploaded_files:
                 except Exception as e:
                     error_msg = f"An error occurred: {str(e)}"
                     st.error(error_msg)
+                    st.session_state.chat_history.append({
+                        "role": "assistant",
+                        "content": error_msg,
+                        "avatar": "🤖",
+                        "timestamp": datetime.now().strftime("%H:%M")
+                    })
 
 st.markdown("</div>", unsafe_allow_html=True)
