@@ -2,7 +2,6 @@ import os
 import google.generativeai as genai
 from dotenv import load_dotenv
 from retrieval import search_db
-import time
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -12,10 +11,10 @@ genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 MODEL_NAME = "gemini-2.5-flash"
 
-def generate_answer(query: str, history: list = []):
-    print(f"Thinking ...")
+def generate_answer(query: str, history: list = [], filename: str = None):
+    print(f"Thinking ... (Using file: {filename}))")
 
-    retrieved_chunks = search_db(query, limit=3)
+    retrieved_chunks = search_db(query, limit=3, filename=filename)
 
     if not retrieved_chunks:
         def empty_generator():
