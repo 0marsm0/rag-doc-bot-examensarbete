@@ -263,20 +263,19 @@ if user_input or uploaded_files:
         
         # Display assistant "thinking"
         with st.chat_message("assistant", avatar="🤖"):
+            sources_placeholder = st.empty()
             with st.spinner("Searching document..."):
                 try:
                     result = rag_module.generate_answer(
-                    user_input, 
-                    history=st.session_state.chat_history[-6:-1]
+                        user_input, 
+                        history=st.session_state.chat_history[-6:-1]
                     )
-        
-                    answer = result["answer"]
+                    
+                    stream_generator = result["stream"]
                     retrieved_chunks = result["sources"]
                     
-                    # Display answer
-                    st.markdown(answer)
-                    
-                    # Timestamp
+                    full_response = st.write_stream(stream_generator)
+
                     timestamp = datetime.now().strftime("%H:%M")
                     st.markdown(f"<div class='timestamp'>{timestamp}</div>", unsafe_allow_html=True)
                     
@@ -305,20 +304,14 @@ if user_input or uploaded_files:
                     # Add assistant response to history
                     st.session_state.chat_history.append({
                         "role": "assistant",
-                        "content": answer,
+                        "content": full_response, # <-- берем результат st.write_stream
                         "avatar": "🤖",
                         "timestamp": timestamp,
                         "sources": sources_data
                     })
                     
                 except Exception as e:
-                    error_msg = f"❌ An error occurred: {str(e)}"
+                    error_msg = f"An error occurred: {str(e)}"
                     st.error(error_msg)
-                    st.session_state.chat_history.append({
-                        "role": "assistant",
-                        "content": error_msg,
-                        "avatar": "🤖",
-                        "timestamp": datetime.now().strftime("%H:%M")
-                    })
 
 st.markdown("</div>", unsafe_allow_html=True)

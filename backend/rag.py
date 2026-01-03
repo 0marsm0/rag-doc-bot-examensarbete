@@ -2,6 +2,7 @@ import os
 import google.generativeai as genai
 from dotenv import load_dotenv
 from retrieval import search_db
+import time
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -61,8 +62,12 @@ def generate_answer(query: str, history: list = []):
 
     def text_generator():
         for chunk in response:
-            if chunk.text:
-                yield chunk.text
+            try:
+                if chunk.text:
+                    yield chunk.text
+            except Exception:
+                continue
+                
     
     
     return {
