@@ -82,12 +82,20 @@ def ingestion(file_path: str):
     try:
         vector_db = lancedb.connect(uri=DB_PATH)
         
-        vector_db.create_table(
-            TABLE_NAME, 
-            schema=Chunk, 
-            mode="overwrite", 
-            data=data_to_insert
-        )
+        try:
+            table = vector_db.open_table(TABLE_NAME)
+
+            table.add(data_to_insert)
+            print(f"Appended {len(data_to_insert)} chunks to existing table.")
+            
+        except Exception:
+            print("Table not found. Creating new table.")
+            vector_db.create_table(
+                TABLE_NAME, 
+                schema=Chunk, 
+                data=data_to_insert
+            )
+            
         print("Ingestion complete!")
         return True
         
